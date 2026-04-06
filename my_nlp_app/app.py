@@ -4,7 +4,6 @@
 # and extract the main aspects mentioned. It includes preprocessing, prompt engineering,
 # and postprocessing to provide structured output.
 
-# %%
 # Import necessary libraries
 import gradio as gr      # For the graphical user interface
 import requests          # To communicate with Ollama's API
@@ -58,3 +57,44 @@ Text: "{cleaned_text}"
 """
     return prompt
 
+# 3. Call Ollama and parse the response
+def call_ollama(prompt: str):
+    """
+    Send the prompt to the local Ollama model and return the raw response.
+    I set temperature=0 to make the output more deterministic (easier to parse).
+    """
+    payload = {
+        "model": MODEL_NAME,
+        "prompt": prompt,
+        "stream": False,
+        "options": {"temperature": 0.0}
+    }
+    response = requests.post(f"{OLLAMA_URL}/api/generate", json=payload)
+    if response.status_code == 200:
+        return response.json()["response"]
+    else:
+        return f"Error: {response.status_code}"
+
+def postprocess(raw_output: str):
+    """
+    Extract sentiment and aspects from the LLM's raw output.
+    I use simple string searching because the prompt forces a fixed format.
+    If parsing fails, I return default values.
+    """
+    sentiment = "Unknown"
+    aspects = []
+    
+    lines = raw_output.split('\n')
+    for line in lines:
+        if line.startswith("Sentiment:"):
+            sentiment = line.replace("Sentiment:", "").strip()
+        elif line.startswith("Aspects:"):
+            aspects_str = line.replace("Aspects:", "").strip()
+            if aspects_str:
+                aspects = [a.strip() for a in aspects_str.split(',')]
+    
+    # Ensure sentiment is one of the three expected values
+    if sentiment not in ["Positive", "Negative", "Neutral"]:
+        sentiment = "Unknown"
+    
+    return sentiment, aspects
