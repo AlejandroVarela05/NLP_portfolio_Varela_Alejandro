@@ -134,7 +134,7 @@ def analyze_sentiment(user_text: str):
 #   - A button to trigger analysis
 #   - Two output boxes: one for the structured result, one for raw output
 with gr.Blocks(title="Sentiment & Aspect Analyzer") as demo:
-    gr.Markdown("# 🧠 Sentiment & Aspect Analyzer")
+    gr.Markdown("#Sentiment & Aspect Analyzer")
     gr.Markdown("Enter a sentence or a product review, and the local LLM will tell you the sentiment and the main aspects mentioned.")
     
     with gr.Row():
