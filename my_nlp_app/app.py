@@ -98,3 +98,56 @@ def postprocess(raw_output: str):
         sentiment = "Unknown"
     
     return sentiment, aspects
+
+# 4. Main pipeline (preprocess -> prompt -> call -> postprocess)
+def analyze_sentiment(user_text: str):
+    """
+    This is the function that Gradio will call when the user clicks the button.
+    It ties all the steps together and returns a formatted result.
+    """
+    if not user_text.strip():
+        return "Please enter some text.", "No aspects found."
+    
+    # Step 1: The Preprocess
+    cleaned = preprocess_text(user_text)
+    
+    # Step 2: Build prompt
+    prompt = build_prompt(cleaned)
+    
+    # Step 3: Call LLM
+    raw_answer = call_ollama(prompt)
+    
+    # Step 4: Postprocess
+    sentiment, aspects = postprocess(raw_answer)
+    
+    # Format output for the GUI
+    result_text = f"**Sentiment:** {sentiment}\n\n**Aspects:** {', '.join(aspects) if aspects else 'None'}"
+    # Also return the raw response for debugging
+    debug_info = f"*(Raw LLM output)*\n{raw_answer}"
+    
+    return result_text, debug_info
+
+# 5. Build the Gradio interface
+# I choose Gradio because it's very easy to create a web UI with minimal code.
+# The interface has:
+#   - A textbox for user input
+#   - A button to trigger analysis
+#   - Two output boxes: one for the structured result, one for raw output
+with gr.Blocks(title="Sentiment & Aspect Analyzer") as demo:
+    gr.Markdown("# 🧠 Sentiment & Aspect Analyzer")
+    gr.Markdown("Enter a sentence or a product review, and the local LLM will tell you the sentiment and the main aspects mentioned.")
+    
+    with gr.Row():
+        with gr.Column():
+            input_text = gr.Textbox(label="Your text", lines=5, placeholder="e.g., The food was amazing but the wait was too long.")
+            analyze_btn = gr.Button("Analyze")
+        with gr.Column():
+            output_result = gr.Markdown(label="Result")
+            output_debug = gr.Textbox(label="Raw LLM output (for inspection)", lines=6)
+    
+    analyze_btn.click(fn=analyze_sentiment, inputs=input_text, outputs=[output_result, output_debug])
+
+# 6. Launch the app
+if __name__ == "__main__":
+    # Launch with share=False (local only) but you can set share=True for a temporary public link
+    demo.launch(server_name="127.0.0.1", server_port=7860)
