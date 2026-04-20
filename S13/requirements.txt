@@ -1,0 +1,8 @@
+openai-whisper
+pyttsx3
+assemblyai
+gTTS
+python-dotenv
+transformers
+librosa
+torch

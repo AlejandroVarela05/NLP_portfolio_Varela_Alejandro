@@ -1,0 +1,6 @@
+.env
+__pycache__/
+*.pyc
+local_output.wav
+cloud_output.mp3
+sample_audio.wav
