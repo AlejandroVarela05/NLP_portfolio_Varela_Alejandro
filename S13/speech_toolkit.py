@@ -41,3 +41,29 @@ load_dotenv()  # Load my secret key from .env file
 # I use a pre-trained model from HuggingFace.
 from transformers import pipeline
 import librosa
+
+# 1. LOCAL SPEECH TO TEXT (Whisper)
+def local_speech_to_text(audio_path):
+    """
+    Transcribe an audio file using a local Whisper model.
+    
+    Why I did this:
+    - Whisper is open-source and runs offline. Good for privacy.
+    - I chose the 'base' model: it's a balance between speed and accuracy.
+    - If the audio is in Spanish, it automatically detects it.
+    """
+    print(f"[LOCAL STT] Loading Whisper model ('base')...")
+    # Load the model. 'base' is ~140MB. It's downloaded once and cached.
+    model = whisper.load_model("base")
+    
+    print(f"[LOCAL STT] Transcribing {audio_path}...")
+    # The transcribe function does the heavy lifting: it resamples audio, extracts features,
+    # and runs the neural network.
+    result = model.transcribe(audio_path)
+    
+    detected_lang = result["language"]
+    text = result["text"]
+    
+    print(f"[LOCAL STT] Detected language: {detected_lang}")
+    print(f"[LOCAL STT] Transcription: {text}")
+    return text
